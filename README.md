@@ -31,7 +31,7 @@ Bu kod, bir şirketin değerini **Monte Carlo simülasyonu** kullanarak **DCF (D
 3. **DCF Hesaplaması (Her Senaryo için)**  
    - Her yıl serbest nakit akımı (FCF) bileşik şekilde büyütülür.  
    - Nakit akışları iskonto edilerek bugünkü değeri (PV) hesaplanır.  
-   - Terminal değer, yalnızca \( WACC > g \) koşulu sağlanıyorsa eklenir.  
+   - Terminal değer, yalnızca \( WACC > terminal büyüme oranı\) koşulu sağlanıyorsa eklenir.  
 
 4. **Sonuçların Düzenlenmesi**  
    - Tüm senaryolardan elde edilen DCF değerleri bir listeye eklenir.  
