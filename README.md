@@ -4,45 +4,44 @@
 Bu kod, bir şirketin değerini **Monte Carlo simülasyonu** kullanarak **DCF (Discounted Cash Flow)** yöntemiyle tahmin etmektedir. Aşağıda adım adım detaylı açıklaması verilmiştir:  
 
 ---
+## Nasıl Çalışır?
 
-## 1. Parametreler
-- **`n_sim`**: Simülasyon tekrar sayısını belirtir.  
-- **`cash_flow0`**: Başlangıçtaki nakit akışı değeridir.  
-- **`years`**: Projeksiyon süresini ifade eder (ör. 5–10 yıl).  
+1. **Parametrelerin Belirlenmesi**  
+   - Simülasyon sayısı (`n_sim`), başlangıç serbest nakit akımı (`cash_flow0`) ve projeksiyon süresi (`years`) tanımlanır.  
+   - Rastgele sayı üreteci (`rng`) ile tekrarlanabilirlik sağlanır.
 
----
+2. **Dağılımların Oluşturulması**  
+   Simülasyonun belirsizlikleri üç temel dağılımla modellenir:  
 
-## 2. Rastgele Sayı Üretici
-- **`numpy`** kütüphanesinin `default_rng` fonksiyonu kullanılarak rastgele sayı üreteci oluşturulur.  
-- Bu üreteç, simülasyon sırasında kullanılacak olan rastgele değerlerin güvenilir şekilde üretilmesini sağlar.  
+   - **Nakit akış büyüme oranları (`growth_rates`)**  
+     - Normal dağılım: Ortalama **%5**, standart sapma **%2**.  
+     - Her yıl için ayrı değer çekilir.  
+     - Böylece her senaryoda, yıllar boyunca farklı büyüme patikaları oluşur.  
 
----
+   - **İskonto oranı (`discount_rates`, WACC)**  
+     - Normal dağılım: Ortalama **%10**, standart sapma **%1**.  
+     - Her senaryo için tek değer çekilir, senaryodan senaryoya değişir.  
+     - Şirketin sermaye maliyetindeki belirsizliği yansıtır.  
 
-## 3. Dağılımlar
-Simülasyon için gerekli belirsizlikler normal dağılımlardan alınır:  
-- **Nakit akış büyüme oranları (growth rates)**  
-- **İskonto oranları (WACC)**  
-- **Terminal büyüme oranları**  
+   - **Terminal büyüme oranı (`terminal_growth`)**  
+     - Normal dağılım: Ortalama **%3**, standart sapma **%0.5**.  
+     - Terminal dönemde şirketin uzun vadeli büyüme beklentisini temsil eder.  
+     - Her senaryo için tek değer çekilir.  
 
-Bu dağılımlar sayesinde her simülasyon farklı değerlerle çalışır ve olasılık tabanlı bir analiz yapılır.  
+3. **DCF Hesaplaması (Her Senaryo için)**  
+   - Her yıl serbest nakit akımı (FCF) bileşik şekilde büyütülür.  
+   - Nakit akışları iskonto edilerek bugünkü değeri (PV) hesaplanır.  
+   - Terminal değer, yalnızca \( WACC > g \) koşulu sağlanıyorsa eklenir.  
 
----
+4. **Sonuçların Düzenlenmesi**  
+   - Tüm senaryolardan elde edilen DCF değerleri bir listeye eklenir.  
+   - Daha sonra uç değerler kırpılır (1. ve 99. persentil dışındakiler çıkarılır).  
 
-## 4. DCF Hesaplaması
-Her simülasyonda:  
-1. Projeksiyon yılları için nakit akışları hesaplanır.  
-2. Her yılın nakit akışı bugünkü değere (PV) iskonto edilir.  
-3. **Terminal Değer (TV)**:  
-   - Eğer iskonto oranı (WACC), terminal büyüme oranından büyükse hesaplanır.  
-   - Formül:  
-     \[
-     TV = \frac{CF_{t+1}}{WACC - g}
-     \]  
+5. **İstatistiklerin Hesaplanması**  
+   - %5, %50 (medyan), %95 persentil değerleri bulunur.  
+   - Ortalama değer (`mean_val`) hesaplanır.  
 
-Toplam şirket değeri, **tüm iskonto edilmiş nakit akışlarının toplamı + terminal değer** olarak bulunur.  
-
----
-
-## 5. Uç Değerlerin Kırpılması
-- Hesaplanan DCF sonuçları arasında aşırı uçta kalan değerler (örneğin 1. ve 99. persentil dışındaki değerler) çıkarılır.  
-- Bu sayede **uç değerlerin etkisi azaltılarak** daha anlamlı ve güvenilir bir değerleme analizi elde edilir.  
+6. **Histogram ile Görselleştirme**  
+   - Elde edilen değer dağılımı histogram olarak çizilir.  
+   - İlgili istatistikler dikey çizgiler ile işaretlenir.  
+   - Grafik kaydedilir: `dcf_monte_carlo_histogram_clean.png`.  
